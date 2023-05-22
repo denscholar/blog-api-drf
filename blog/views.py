@@ -3,55 +3,58 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework import status
-
-
 from blog.models import Blog
 from blog.serializers import BlogSerializers
 
 
-@api_view(["GET", "POST"])
-def blog_list(request, format=None):
-    if request.method == "GET":
-        blogs = Blog.objects.filter(is_public=True)
+class BlogListView(APIView):
+    def get(self, request):
+        blogs = Blog.objects.all()
         serializer = BlogSerializers(blogs, many=True)
         response = {
             "message": "all blogs",
-            "data": serializer.data,
+            "data": serializer.data
         }
         return Response(data=response, status=status.HTTP_200_OK)
-
-    if request.method == "POST":
+    
+    def post(self, request):
         serializer = BlogSerializers(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(["GET", "PUT", "DELETE"])
-def blog_detail(request, pk):
-    if request.method == "GET":
-        blog = Blog.objects.get(pk=pk)
+            response = {
+                "message": "blog created",
+                "data": serializer.data
+            }
+            return Response(data=response, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class BlogDetailView(APIView):
+    def get(self, request, slug):
+        blog = get_object_or_404(Blog, slug=slug)
         serializer = BlogSerializers(blog)
         response = {
-            "message": "single blog",
-            "data": serializer.data,
+            "message": "blog details",
+            "data": serializer.data
         }
         return Response(data=response, status=status.HTTP_200_OK)
     
-    if request.method == "PUT":
-        instance = get_object_or_404(Blog, pk=pk)
-        serializer = BlogSerializers(instance, data=request.data)
+    def put(self, request, slug):
+        blog = get_object_or_404(Blog, slug=slug)
+        serializer = BlogSerializers(blog, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            response = {
+                "message": "blog updated",
+                "data": serializer.data
+            }
+            return Response(data=response, status=status.HTTP_200_OK)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    if request.method == 'DELETE':
-        instance = get_object_or_404(Blog, pk=pk)
-        instance.delete()
+    def delete(self, request, slug):
+        blog = get_object_or_404(Blog, slug=slug)
+        blog.delete()
         response = {
             "message": "blog deleted",
+            "data": {}
         }
-        return Response(data=response, status=status.HTTP_204_NO_CONTENT)
-        
+        return Response(data=response, status=status.HTTP_200_OK)
