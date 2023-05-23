@@ -3,14 +3,32 @@ from .models import Blog
 
 
 class BlogSerializers(serializers.ModelSerializer):
+    # create a methodfield
+    len_blog_title = serializers.SerializerMethodField()
+
     # validator
     blog_title = serializers.CharField(required=True)
     blog_description = serializers.CharField(required=True)
 
     class Meta:
         model = Blog
-        fields = ("blog_title", "blog_description", "is_public", "post_date", "category" ,"slug")
-        read_only_fields = ("post_date", "slug")
+        fields = (
+            "blog_title",
+            "len_blog_title",
+            "blog_description",
+            "is_public",
+            "post_date",
+            "category",
+            "slug",
+        )
+        read_only_fields = (
+            "post_date",
+            "slug",
+        )
+
+    # calling the methodfield
+    def get_len_blog_title(self, obj):
+        return len(obj.blog_title)
 
     # fields level validation
     def validate_blog_title(self, value):
