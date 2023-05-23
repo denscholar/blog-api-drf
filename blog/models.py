@@ -6,19 +6,28 @@ from django.utils.text import slugify
 import uuid
 
 
+class Category(models.Model):
+    category_name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.category_name
+    
+
+
 class Blog(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField()
+    blog_title = models.CharField(max_length=100)
+    blog_description = models.TextField()
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='category')
     is_public = models.BooleanField(default=False)
     post_date = models.DateField(default=date.today)
     slug = models.SlugField(max_length=1000, null=True, blank=True, unique=True)
 
     def __str__(self):
-        return self.name + " ==> " + str(self.author)
+        return self.blog_title + " ==> " + str(self.blog_title)
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = slugify(self.name)[:50] if self.name else "blog"
+            base_slug = slugify(self.blog_title)[:50] if self.blog_title else "blog"
             unique_id = uuid.uuid4().hex[
                 :10
             ]  # Generate a unique identifier using UUID4
@@ -41,11 +50,11 @@ class Blog(models.Model):
             super().save(*args, **kwargs)
 
 
-class BlogComment(models.Model):
-    description = models.TextField()
-    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    comment_date = models.DateTimeField(auto_now_add=True)
-    blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
+# class BlogComment(models.Model):
+#     description = models.TextField()
+#     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+#     comment_date = models.DateTimeField(auto_now_add=True)
+#     blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return str(self.blog)
+#     def __str__(self):
+#         return str(self.blog)
