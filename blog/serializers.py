@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Blog
+from .models import Blog, Category
 
 
 class BlogSerializers(serializers.ModelSerializer):
@@ -41,3 +41,11 @@ class BlogSerializers(serializers.ModelSerializer):
             raise serializers.ValidationError("name and description can't be same")
         else:
             return data
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField()
+    category = BlogSerializers(many=True, read_only=True)
+    class Meta:
+        model = Category
+        exclude = ("id",)
